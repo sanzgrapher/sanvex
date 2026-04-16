@@ -1,0 +1,22 @@
+{
+    "name": "sanvex/cli",
+    "description": "Artisan CLI commands for sanvex",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "sanvex/core": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Sanvex\\Cli\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": ["Sanvex\\Cli\\CliServiceProvider"]
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

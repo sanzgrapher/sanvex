@@ -1,0 +1,22 @@
+{
+    "name": "sanvex/notion",
+    "description": "Notion driver for sanvex",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "sanvex/core": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Sanvex\\Drivers\\Notion\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": ["Sanvex\\Drivers\\Notion\\NotionServiceProvider"]
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

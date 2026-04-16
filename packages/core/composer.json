@@ -1,0 +1,40 @@
+{
+    "name": "sanvex/core",
+    "description": "sanvex core package - ConnectorManager, BaseDriver, DB layer",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "laravel/framework": "^12.0 || ^13.0",
+        "spatie/laravel-data": "^4.0",
+        "illuminate/support": "^12.0 || ^13.0",
+        "illuminate/database": "^12.0 || ^13.0",
+        "illuminate/http": "^12.0 || ^13.0",
+        "illuminate/console": "^12.0 || ^13.0",
+        "guzzlehttp/guzzle": "^7.0"
+    },
+    "require-dev": {
+        "pestphp/pest": "^3.0",
+        "orchestra/testbench": "^10.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Sanvex\\Core\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Sanvex\\Core\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": ["Sanvex\\Core\\ConnectorServiceProvider"],
+            "aliases": {
+                "Sanvex": "Sanvex\\Core\\ConnectorFacade"
+            }
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

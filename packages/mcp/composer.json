@@ -1,0 +1,22 @@
+{
+    "name": "sanvex/mcp",
+    "description": "MCP (Model Context Protocol) tools for sanvex",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "sanvex/core": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Sanvex\\Mcp\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": ["Sanvex\\Mcp\\McpServiceProvider"]
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

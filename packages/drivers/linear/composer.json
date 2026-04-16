@@ -1,0 +1,22 @@
+{
+    "name": "sanvex/linear",
+    "description": "Linear driver for sanvex",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "sanvex/core": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Sanvex\\Drivers\\Linear\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": ["Sanvex\\Drivers\\Linear\\LinearServiceProvider"]
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
