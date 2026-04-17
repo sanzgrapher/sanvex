@@ -1,0 +1,9 @@
+{
+    "name": "sanvex/monorepo",
+    "description": "sanvex monorepo wrapper",
+    "type": "project",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2"
+    }
+}
