@@ -30,8 +30,11 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Sanvex\\Core\\SanvexServiceProvider"
-            ]
+                    "Sanvex\\Core\\SanvexServiceProvider"
+                ],
+                "aliases": {
+                    "Sanvex": "Sanvex\\Core\\Sanvex"
+                }
         }
     },
     "minimum-stability": "dev",
