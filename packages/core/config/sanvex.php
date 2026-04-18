@@ -3,6 +3,17 @@
 return [
     /*
     |--------------------------------------------------------------------------
+    | Key Encryption Key (KEK)
+    |--------------------------------------------------------------------------
+    |
+    | Used by the Sanvex EncryptionService to encrypt Data Encryption Keys (DEKs).
+    | Should be base64 encoded and 32 bytes long (e.g. from `php artisan key:generate`).
+    |
+    */
+    'kek' => env('SANVEX_KEK', env('APP_KEY')),
+
+    /*
+    |--------------------------------------------------------------------------
     | Registered Drivers
     |--------------------------------------------------------------------------
     |
