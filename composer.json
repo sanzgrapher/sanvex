@@ -12,7 +12,10 @@
             "Sanvex\\Cli\\": "packages/cli/src/",
             "Sanvex\\Mcp\\": "packages/mcp/src/",
             "Sanvex\\Drivers\\Gmail\\": "packages/drivers/gmail/src/",
-            "Sanvex\\Drivers\\GitHub\\": "packages/drivers/github/src/"
+            "Sanvex\\Drivers\\GitHub\\": "packages/drivers/github/src/",
+            "Sanvex\\Drivers\\Linear\\": "packages/drivers/linear/src/",
+            "Sanvex\\Drivers\\Notion\\": "packages/drivers/notion/src/",
+            "Sanvex\\Drivers\\Slack\\": "packages/drivers/slack/src/"
         }
     }
 }
