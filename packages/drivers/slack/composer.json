@@ -1,0 +1,31 @@
+{
+    "name": "sanvex/slack",
+    "description": "Slack driver for sanvex",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "sanvex/core": "*"
+    },
+    "require-dev": {
+        "pestphp/pest": "^3.0",
+        "orchestra/testbench": "^10.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Sanvex\\Drivers\\Slack\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Sanvex\\Drivers\\Slack\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": ["Sanvex\\Drivers\\Slack\\SlackServiceProvider"]
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
