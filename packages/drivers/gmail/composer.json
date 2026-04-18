@@ -1,0 +1,22 @@
+{
+    "name": "sanvex/gmail",
+    "description": "Gmail driver for sanvex",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "sanvex/core": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Sanvex\\Drivers\\Gmail\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": ["Sanvex\\Drivers\\Gmail\\GmailServiceProvider"]
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
