@@ -15,7 +15,7 @@ abstract class BaseDriver
     public array $authTypes = ['api_key'];
     public string $defaultAuthType = 'api_key';
 
-    protected ?ConnectorManager $manager = null;
+    protected ?SanvexManager $manager = null;
     protected array $config = [];
     protected ?KeyManager $keyManager = null;
     protected ?KeyBuilder $keyBuilderInstance = null;
@@ -25,7 +25,7 @@ abstract class BaseDriver
 
     abstract public function verifySignature(array $headers, string $rawBody, string $secret): bool;
 
-    public function setManager(ConnectorManager $manager): static
+    public function setManager(SanvexManager $manager): static
     {
         $this->manager = $manager;
         return $this;
