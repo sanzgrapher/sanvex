@@ -2,7 +2,7 @@
 
 namespace Sanvex\Core;
 
-class DbAccessor
+abstract class BaseResource
 {
     public function __construct(protected readonly BaseDriver $driver) {}
 }
