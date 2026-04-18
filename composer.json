@@ -8,7 +8,8 @@
     },
     "autoload": {
         "psr-4": {
-            "Sanvex\\Core\\": "packages/core/src/"
+            "Sanvex\\Core\\": "packages/core/src/",
+            "Sanvex\\Cli\\": "packages/cli/src/"
         }
     }
 }
