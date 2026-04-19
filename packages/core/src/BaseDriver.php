@@ -33,6 +33,11 @@ abstract class BaseDriver
 
     abstract public function verifySignature(array $headers, string $rawBody, string $secret): bool;
 
+    public function isConfigured(): bool
+    {
+        return ! empty($this->getToken());
+    }
+
     public function setManager(SanvexManager $manager): static
     {
         $this->manager = $manager;
