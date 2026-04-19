@@ -10,12 +10,23 @@ class DatabasesResource extends BaseResource
 
     public function query(array $args): array
     {
-        $id = $args['database_id'];
+        $id = $args['database_id'] ?? $args['id'] ?? null;
         return $this->driver->post(self::BASE_URL . "/databases/{$id}/query", $args);
+    }
+
+    public function get(array $args): array
+    {
+        $id = $args['database_id'] ?? $args['id'] ?? null;
+        return $this->driver->get(self::BASE_URL . "/databases/{$id}");
     }
 
     public function list(array $args = []): array
     {
         return $this->driver->post(self::BASE_URL . '/search', array_merge($args, ['filter' => ['value' => 'database', 'property' => 'object']]));
+    }
+
+    public function retrieve(array $args = []): array
+    {
+        return $this->list($args);
     }
 }
