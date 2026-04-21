@@ -6,6 +6,16 @@
     "require": {
         "php": "^8.2"
     },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "packages/*"
+        },
+        {
+            "type": "path",
+            "url": "packages/drivers/*"
+        }
+    ],
     "autoload": {
         "psr-4": {
             "Sanvex\\Core\\": "packages/core/src/",
