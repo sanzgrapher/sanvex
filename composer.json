@@ -1,6 +1,6 @@
 {
-    "name": "sanvex/monorepo",
-    "description": "sanvex monorepo wrapper",
+    "name": "sanvex/ecosystem",
+    "description": "An AI-agentic ecosystem and unified API integration layer for Laravel",
     "type": "project",
     "license": "MIT",
     "require": {
