@@ -9,8 +9,8 @@ on:
   workflow_dispatch:
 
 env:
-  # Action reads GITHUB_TOKEN; ACCESS_TOKEN should be a PAT secret with write access to split repos.
-  GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+  # PAT secret with write access to split repositories.
+  ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
 
 jobs:
   split:
@@ -44,6 +44,8 @@ jobs:
 
       - if: "!startsWith(github.ref, 'refs/tags/')"
         uses: symplify/monorepo-split-github-action@v2
+        env:
+          GITHUB_TOKEN: ${{ env.ACCESS_TOKEN }}
         with:
           package_directory: 'packages/${{ matrix.package.local_path }}'
           repository_organization: 'sanvexdev'
@@ -53,6 +55,8 @@ jobs:
 
       - if: "startsWith(github.ref, 'refs/tags/')"
         uses: symplify/monorepo-split-github-action@v2
+        env:
+          GITHUB_TOKEN: ${{ env.ACCESS_TOKEN }}
         with:
           tag: ${{ github.ref_name }}
           package_directory: 'packages/${{ matrix.package.local_path }}'
