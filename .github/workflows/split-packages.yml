@@ -16,42 +16,55 @@ jobs:
   split:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
     strategy:
       fail-fast: false
       matrix:
         package:
-          - local_path: 'core'
+          - local_path: 'packages/core'
             split_repository: 'core'
-          - local_path: 'cli'
+          - local_path: 'packages/cli'
             split_repository: 'cli'
-          - local_path: 'mcp'
+          - local_path: 'packages/mcp'
             split_repository: 'mcp'
-          - local_path: 'drivers/github'
+          - local_path: 'packages/drivers/github'
             split_repository: 'github'
-          - local_path: 'drivers/gmail'
+          - local_path: 'packages/drivers/gmail'
             split_repository: 'gmail'
-          - local_path: 'drivers/linear'
+          - local_path: 'packages/drivers/linear'
             split_repository: 'linear'
-          - local_path: 'drivers/notion'
+          - local_path: 'packages/drivers/notion'
             split_repository: 'notion'
-          - local_path: 'drivers/slack'
+          - local_path: 'packages/drivers/slack'
             split_repository: 'slack'
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
+      - name: Ensure split repository exists
+        env:
+          GH_TOKEN: ${{ env.ACCESS_TOKEN }}
+          REPO_NAME: ${{ matrix.package.split_repository }}
+        run: |
+          if gh repo view "sanvexdev/${REPO_NAME}" >/dev/null 2>&1; then
+            echo "Repository sanvexdev/${REPO_NAME} already exists"
+          else
+            echo "Creating sanvexdev/${REPO_NAME}..."
+            gh repo create "sanvexdev/${REPO_NAME}" --public --confirm
+          fi
+
       - if: "!startsWith(github.ref, 'refs/tags/')"
         uses: danharrin/monorepo-split-github-action@v2.4.0
         env:
           GITHUB_TOKEN: ${{ env.ACCESS_TOKEN }}
         with:
-          package_directory: 'packages/${{ matrix.package.local_path }}'
+          package_directory: '${{ matrix.package.local_path }}'
           repository_organization: 'sanvexdev'
           repository_name: '${{ matrix.package.split_repository }}'
           user_name: 'github-actions[bot]'
           user_email: 'github-actions[bot]@users.noreply.github.com'
+          access_token: ${{ env.ACCESS_TOKEN }}
 
       - if: "startsWith(github.ref, 'refs/tags/')"
         uses: danharrin/monorepo-split-github-action@v2.4.0
@@ -59,8 +72,9 @@ jobs:
           GITHUB_TOKEN: ${{ env.ACCESS_TOKEN }}
         with:
           tag: ${{ github.ref_name }}
-          package_directory: 'packages/${{ matrix.package.local_path }}'
+          package_directory: '${{ matrix.package.local_path }}'
           repository_organization: 'sanvexdev'
           repository_name: '${{ matrix.package.split_repository }}'
           user_name: 'github-actions[bot]'
           user_email: 'github-actions[bot]@users.noreply.github.com'
+          access_token: ${{ env.ACCESS_TOKEN }}
