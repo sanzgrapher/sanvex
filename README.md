@@ -20,8 +20,10 @@ Sanvex is developed in a single monorepo:
 - Driver packages: `packages/drivers/*` (e.g. `github`, `gmail`, `linear`, `notion`, `slack`)
 
 Each package is split automatically into its own read-only repository via `.github/workflows/split-packages.yml`.
-To enable pushing split updates, set `ACCESS_TOKEN` in repository secrets with permission to push to the split repositories.
+To enable pushing split updates, set `GH_PAT` in repository secrets with permission to push to the split repositories.
 Contributions and pull requests should be opened against this monorepo (the split repositories are mirrors).
+
+**Releases:** Stable versions on Packagist come from **SemVer git tags** on this monorepo (for example `v0.1.0`). Pushing a tag runs the split workflow and tags the matching read-only repos (for example `sanvexdev/core`), which Packagist then indexes as stable.
 
 ## 📦 Supported Drivers
 
@@ -34,11 +36,27 @@ Currently, Sanvex supports the following out-of-the-box integrations:
 
 ## 🛠️ Installation
 
-Require the package via Composer (assuming local monorepo setup):
+### From Packagist (recommended)
+
+Install the core package in a Laravel app (works with default Composer `minimum-stability: stable` once a tagged release exists):
 
 ```bash
-composer require sanvex/monorepo
+composer require sanvex/core:^0.1.0
 ```
+
+To track the default branch instead of a tagged release (dev stability), require it explicitly:
+
+```bash
+composer require sanvex/core:dev-main
+```
+
+Alternatively, set `"minimum-stability": "dev"` and `"prefer-stable": true` in your app’s root `composer.json`, then run `composer require sanvex/core`.
+
+Other split packages (CLI, MCP, drivers) are published under the `sanvex` vendor on Packagist the same way; pin each with a semver range when stable tags are available.
+
+### Local path (this monorepo)
+
+For development against a checkout of this repository, add a path repository in your app’s `composer.json` pointing at this monorepo root, then require the package you need (see each package’s `composer.json` under `packages/`).
 
 Make sure the Service Providers are successfully registered in your Laravel application (e.g., inside \`bootstrap/providers.php\`):
 
