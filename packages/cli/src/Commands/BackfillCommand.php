@@ -17,7 +17,26 @@ class BackfillCommand extends Command
     public function handle(SanvexManager $connector): int
     {
         $driverId = $this->argument('driver');
-        $owner = Owner::fromTypeAndId($this->option('owner-type'), $this->option('owner-id'));
+        $ownerType = $this->option('owner-type');
+        $ownerId = $this->option('owner-id');
+
+        $ownerType = is_string($ownerType) ? trim($ownerType) : $ownerType;
+        $ownerId = is_string($ownerId) ? trim($ownerId) : $ownerId;
+
+        if (($ownerType === '' || $ownerType === null) && ($ownerId === '' || $ownerId === null)) {
+            $ownerType = null;
+            $ownerId = null;
+        } elseif ($ownerType === '' || $ownerType === null || $ownerId === '' || $ownerId === null) {
+            $this->error('Both --owner-type and --owner-id must be provided together and must not be empty.');
+            return self::FAILURE;
+        }
+
+        try {
+            $owner = Owner::fromTypeAndId($ownerType, $ownerId);
+        } catch (\InvalidArgumentException $e) {
+            $this->error('Invalid owner options: '.$e->getMessage());
+            return self::FAILURE;
+        }
 
         try {
             $connector->for($owner)->resolveDriver($driverId);
