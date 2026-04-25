@@ -3,6 +3,7 @@
 namespace Sanvex\Core\Permissions;
 
 use Illuminate\Support\Facades\DB;
+use Sanvex\Core\Tenancy\Owner;
 
 class PermissionGuard
 {
@@ -18,32 +19,37 @@ class PermissionGuard
         string $resource,
         string $action,
         array $args,
-        string $mode
+        string $mode,
+        mixed $owner = null,
     ): bool|string {
+        $resolvedOwner = Owner::resolve($owner);
+
         return match ($mode) {
             self::MODE_OPEN => true,
             self::MODE_READONLY => !in_array(strtolower($action), self::$writeActions, true),
-            self::MODE_STRICT => $this->requireApproval($driver, $resource, $action, $args),
-            self::MODE_CAUTIOUS => $this->cautious($driver, $resource, $action, $args),
+            self::MODE_STRICT => $this->requireApproval($driver, $resource, $action, $args, $resolvedOwner),
+            self::MODE_CAUTIOUS => $this->cautious($driver, $resource, $action, $args, $resolvedOwner),
             default => false,
         };
     }
 
-    private function cautious(string $driver, string $resource, string $action, array $args): bool|string
+    private function cautious(string $driver, string $resource, string $action, array $args, Owner $owner): bool|string
     {
         if (!in_array(strtolower($action), self::$writeActions, true)) {
             return true;
         }
 
-        return $this->requireApproval($driver, $resource, $action, $args);
+        return $this->requireApproval($driver, $resource, $action, $args, $owner);
     }
 
-    private function requireApproval(string $driver, string $resource, string $action, array $args): string
+    private function requireApproval(string $driver, string $resource, string $action, array $args, Owner $owner): string
     {
         $token = bin2hex(random_bytes(16));
 
         try {
             DB::table('sv_permissions')->insert([
+                'owner_type' => $owner->type(),
+                'owner_id' => $owner->id(),
                 'driver' => $driver,
                 'resource' => $resource,
                 'action' => $action,

@@ -77,6 +77,7 @@ class SlackDriver extends BaseDriver
         return new SlackKeyBuilder(
             driver: $this->id,
             keyManager: $this->keyManager,
+            owner: $this->owner(),
         );
     }
 }

@@ -28,6 +28,7 @@ Contributions and pull requests should be opened against this monorepo (the spli
 ## 📦 Supported Drivers
 
 Currently, Sanvex supports the following out-of-the-box integrations:
+
 - **GitHub** (Repositories, Issues, Pull Requests)
 - **Gmail** (Emails, Threads)
 - **Linear** (Issues, Projects)
@@ -72,12 +73,14 @@ Make sure the Service Providers are successfully registered in your Laravel appl
 Sanvex comes with a helpful CLI module to manage your driver connections.
 
 **1. List all available drivers:**
+
 ```bash
 php artisan sanvex:list
 ```
 
 **2. Setup a specific driver:**
 This command prompts you to enter required credentials (e.g., API Key, OAuth tokens) or allows them inline.
+
 ```bash
 php artisan sanvex:setup github --api-key="your_api_key_here"
 ```
@@ -97,7 +100,7 @@ class GithubController extends Controller
     {
         // 1. Resolve the driver
         $github = $manager->resolveDriver("github");
-        
+
         // 2. Access a resource module and perform an action
         $repos = $github->repositories()->list([
             "per_page" => 10
@@ -113,6 +116,7 @@ class GithubController extends Controller
 Sanvex really shines when bridging your application to AI models. Instead of manually writing logic for every endpoint, you can expose a generic JSON \`sanvex_action\` tool to your LLM.
 
 **Exposed JSON Tool Definition:**
+
 ```json
 {
   "name": "sanvex_action",
@@ -120,10 +124,19 @@ Sanvex really shines when bridging your application to AI models. Instead of man
   "parameters": {
     "type": "object",
     "properties": {
-      "driver": { "type": "string", "description": "e.g., github, linear, notion" },
-      "resource": { "type": "string", "description": "e.g., repositories, issues" },
+      "driver": {
+        "type": "string",
+        "description": "e.g., github, linear, notion"
+      },
+      "resource": {
+        "type": "string",
+        "description": "e.g., repositories, issues"
+      },
       "action": { "type": "string", "description": "e.g., list, get, create" },
-      "args": { "type": "object", "description": "Key-value arguments for the action." }
+      "args": {
+        "type": "object",
+        "description": "Key-value arguments for the action."
+      }
     },
     "required": ["driver", "resource", "action"]
   }
@@ -131,6 +144,7 @@ Sanvex really shines when bridging your application to AI models. Instead of man
 ```
 
 **Dynamic Execution Pipeline:**
+
 ```php
 $driverId = $instruction["driver"];      // e.g., "github"
 $resource = $instruction["resource"];    // e.g., "repositories"
@@ -143,4 +157,40 @@ $driver = $manager->resolveDriver($driverId);
 $result = $driver->{$resource}()->{$action}($args);
 
 return $result;
+```
+
+### Multi-tenant usage
+
+Single-tenant usage remains unchanged:
+
+```php
+$driver = $manager->resolveDriver('notion');
+```
+
+For multi-tenant apps, use a tenant-scoped context with `for($owner)`.
+The owner can be an Eloquent model (for example `User`, `Team`, `Workspace`) or an object implementing `Sanvex\Core\Contracts\SanvexOwner`.
+
+```php
+use Sanvex\Core\SanvexManager;
+
+class CrmController extends Controller
+{
+  public function index(SanvexManager $manager)
+  {
+    $notion = $manager->for(auth()->user())->resolveDriver('notion');
+
+    return $notion->pages()->list([
+      'page_size' => 10,
+    ]);
+  }
+}
+```
+
+Optional container sugar if your app centralizes owner resolution:
+
+```php
+app()->bind('sanvex.current_owner', fn () => auth()->user());
+
+$owner = app('sanvex.current_owner');
+$github = app(SanvexManager::class)->for($owner)->resolveDriver('github');
 ```

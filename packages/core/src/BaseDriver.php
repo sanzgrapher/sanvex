@@ -10,6 +10,7 @@ use Sanvex\Core\Auth\OAuthManager;
 use Sanvex\Core\Auth\OAuthProviderConfig;
 use Sanvex\Core\DTOs\WebhookResult;
 use Sanvex\Core\Encryption\KeyManager;
+use Sanvex\Core\Tenancy\Owner;
 
 abstract class BaseDriver
 {
@@ -33,6 +34,8 @@ abstract class BaseDriver
 
     private ?Client $httpClient = null;
 
+    protected ?Owner $owner = null;
+
     abstract public function handleWebhook(array $headers, array|string $payload): WebhookResult;
 
     abstract public function verifySignature(array $headers, string $rawBody, string $secret): bool;
@@ -52,7 +55,8 @@ abstract class BaseDriver
         if (! $this->oauthManagerInstance) {
             $this->oauthManagerInstance = new OAuthManager(
                 $this->id,
-                $this->keyManager
+                $this->keyManager,
+                $this->owner(),
             );
         }
 
@@ -64,6 +68,32 @@ abstract class BaseDriver
         $this->manager = $manager;
 
         return $this;
+    }
+
+    public function setOwner(Owner $owner): static
+    {
+        $this->owner = $owner;
+        $this->keyBuilderInstance = null;
+        $this->oauthManagerInstance = null;
+        $this->httpClient = null;
+
+        return $this;
+    }
+
+    protected function owner(): Owner
+    {
+        if (! $this->owner) {
+            $this->owner = Owner::global();
+        }
+
+        return $this->owner;
+    }
+
+    public function cloneForTenant(Owner $owner): static
+    {
+        $clone = clone $this;
+
+        return $clone->setOwner($owner);
     }
 
     public function configure(array $config): static
@@ -94,6 +124,7 @@ abstract class BaseDriver
         return new KeyBuilder(
             driver: $this->id,
             keyManager: $this->keyManager,
+            owner: $this->owner(),
         );
     }
 
@@ -179,6 +210,8 @@ abstract class BaseDriver
 
         DB::table('sv_entities')->updateOrInsert(
             [
+                'owner_type' => $this->owner()->type(),
+                'owner_id' => $this->owner()->id(),
                 'driver' => $this->id,
                 'entity_type' => $type,
                 'entity_id' => $entityId,
@@ -191,6 +224,8 @@ abstract class BaseDriver
 
         // Preserve original created_at on subsequent upserts
         DB::table('sv_entities')
+            ->where('owner_type', $this->owner()->type())
+            ->where('owner_id', $this->owner()->id())
             ->where('driver', $this->id)
             ->where('entity_type', $type)
             ->where('entity_id', $entityId)
@@ -201,6 +236,8 @@ abstract class BaseDriver
     protected function getEntities(string $type, array $filters = []): array
     {
         $query = DB::table('sv_entities')
+            ->where('owner_type', $this->owner()->type())
+            ->where('owner_id', $this->owner()->id())
             ->where('driver', $this->id)
             ->where('entity_type', $type);
 

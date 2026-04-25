@@ -59,6 +59,7 @@ class LinearDriver extends BaseDriver
         return new LinearKeyBuilder(
             driver: $this->id,
             keyManager: $this->keyManager,
+            owner: $this->owner(),
         );
     }
 }

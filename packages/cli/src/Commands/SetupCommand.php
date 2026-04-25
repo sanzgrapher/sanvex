@@ -4,6 +4,7 @@ namespace Sanvex\Cli\Commands;
 
 use Illuminate\Console\Command;
 use Sanvex\Core\SanvexManager;
+use Sanvex\Core\Tenancy\Owner;
 
 class SetupCommand extends Command
 {
@@ -11,6 +12,8 @@ class SetupCommand extends Command
                             {driver : The driver to set up (e.g. slack, github)}
                             {--api-key= : API key or token}
                             {--bot-token= : Bot token (for Slack)}
+                            {--owner-type= : Owner type for tenant-scoped credentials}
+                            {--owner-id= : Owner id for tenant-scoped credentials}
                             {--backfill : Run backfill after setup}';
 
     protected $description = 'Set up a driver integration with credentials';
@@ -18,9 +21,26 @@ class SetupCommand extends Command
     public function handle(SanvexManager $connector): int
     {
         $driverId = $this->argument('driver');
+        $ownerType = $this->option('owner-type');
+        $ownerId = $this->option('owner-id');
+
+        $ownerType = is_string($ownerType) && trim($ownerType) === '' ? null : $ownerType;
+        $ownerId = is_string($ownerId) && trim($ownerId) === '' ? null : $ownerId;
+
+        if (($ownerType === null) !== ($ownerId === null)) {
+            $this->error('Both --owner-type and --owner-id must be provided together.');
+            return self::FAILURE;
+        }
 
         try {
-            $driver = $connector->resolveDriver($driverId);
+            $owner = Owner::fromTypeAndId($ownerType, $ownerId);
+        } catch (\InvalidArgumentException $e) {
+            $this->error('Invalid owner options provided. Please provide both --owner-type and --owner-id with non-empty values.');
+            return self::FAILURE;
+        }
+
+        try {
+            $driver = $connector->for($owner)->resolveDriver($driverId);
         } catch (\Throwable $e) {
             $this->error("Driver [{$driverId}] is not registered. Make sure the driver package is installed.");
             return self::FAILURE;
@@ -41,10 +61,23 @@ class SetupCommand extends Command
         }
 
         if ($this->option('backfill')) {
-            $this->call('sanvex:backfill', ['driver' => $driverId]);
+            $backfillArguments = [
+                'driver' => $driverId,
+            ];
+
+            if (! $owner->isGlobal()) {
+                $backfillArguments['--owner-type'] = $owner->type();
+                $backfillArguments['--owner-id'] = $owner->id();
+            }
+
+            $this->call('sanvex:backfill', $backfillArguments);
         }
 
-        $this->info("Driver [{$driverId}] setup complete.");
+        $scope = $owner->isGlobal()
+            ? 'global/default'
+            : $owner->type().'/'.$owner->id();
+
+        $this->info("Driver [{$driverId}] setup complete for owner [{$scope}].");
         return self::SUCCESS;
     }
 }

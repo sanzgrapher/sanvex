@@ -2,9 +2,11 @@
 
 namespace Sanvex\Core\Auth;
 
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Sanvex\Core\Encryption\KeyManager;
+use Sanvex\Core\Tenancy\Owner;
 use Throwable;
 
 class OAuthManager
@@ -12,46 +14,141 @@ class OAuthManager
     public function __construct(
         private readonly string $driver,
         private readonly ?KeyManager $keyManager = null,
+        private readonly ?Owner $owner = null,
     ) {}
 
     public function storeTokens(array $tokens): void
     {
         foreach ($tokens as $key => $value) {
             if ($this->keyManager && is_scalar($value)) {
-                $this->keyManager->storeCredential($this->driver, $key, (string) $value);
+                $this->keyManager->storeCredential($this->driver, $key, (string) $value, $this->owner ?? Owner::global());
             }
         }
     }
 
     public function getAccessToken(): ?string
     {
-        return $this->keyManager?->getCredential($this->driver, 'access_token');
+        return $this->keyManager?->getCredential($this->driver, 'access_token', $this->owner ?? Owner::global());
     }
 
     public function getRefreshToken(): ?string
     {
-        return $this->keyManager?->getCredential($this->driver, 'refresh_token');
+        return $this->keyManager?->getCredential($this->driver, 'refresh_token', $this->owner ?? Owner::global());
     }
 
     public function getExpiresAt(): ?int
     {
-        $val = $this->keyManager?->getCredential($this->driver, 'expires_at');
+        $val = $this->keyManager?->getCredential($this->driver, 'expires_at', $this->owner ?? Owner::global());
         return $val ? (int) $val : null;
     }
 
-    public function getAuthorizationUrl(OAuthProviderConfig $config, string $state): string
+    public function getAuthorizationUrl(OAuthProviderConfig $config, ?string $state = null): string
     {
         $query = http_build_query([
             'client_id' => $config->clientId,
             'redirect_uri' => $config->redirectUri,
             'response_type' => 'code',
             'scope' => implode(' ', $config->scopes),
-            'state' => $state,
+            'state' => $state ?? $this->buildState(),
         ]);
 
         $separator = str_contains($config->authorizationUrl, '?') ? '&' : '?';
         
         return $config->authorizationUrl . $separator . $query;
+    }
+
+    public function buildState(?Owner $owner = null): string
+    {
+        $owner = $owner ?? $this->owner ?? Owner::global();
+        $nonce = Str::random(24);
+        $payload = implode(':', [$owner->type(), $owner->id(), $nonce]);
+        $signature = hash_hmac('sha256', $payload, $this->resolveAppKey(), true);
+
+        Cache::put($this->nonceCacheKey($nonce), true, 600);
+
+        return $this->base64UrlEncode($payload).'.'.$this->base64UrlEncode($signature);
+    }
+
+    /**
+     * Verify a state token produced by buildState(). Returns the embedded Owner on
+     * success, or null when the signature is invalid, the nonce has already been
+     * consumed (replay), or the state is malformed.
+     */
+    public function verifyState(string $state): ?Owner
+    {
+        $parts = explode('.', $state);
+
+        if (count($parts) !== 2) {
+            return null;
+        }
+
+        [$encodedPayload, $encodedSig] = $parts;
+
+        $payload   = base64_decode(strtr($encodedPayload, '-_', '+/'));
+        $signature = base64_decode(strtr($encodedSig, '-_', '+/'));
+
+        if ($payload === false || $signature === false) {
+            return null;
+        }
+
+        $expected = hash_hmac('sha256', $payload, $this->resolveAppKey(), true);
+
+        if (! hash_equals($expected, $signature)) {
+            return null;
+        }
+
+        $segments = explode(':', $payload);
+
+        if (count($segments) < 3) {
+            return null;
+        }
+
+        // nonce is the last segment; type and id may contain colons (e.g. FQCN)
+        $nonce = array_pop($segments);
+        $id    = array_pop($segments);
+        $type  = implode(':', $segments);
+
+        $cacheKey = $this->nonceCacheKey($nonce);
+
+        if (Cache::pull($cacheKey) === null) {
+            return null;
+        }
+        try {
+            return Owner::fromTypeAndId($type, $id);
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    private function nonceCacheKey(string $nonce): string
+    {
+        return 'sanvex:oauth:nonce:'.$nonce;
+    }
+
+    private function resolveAppKey(): string
+    {
+        $appKey = config('app.key');
+
+        if (! is_string($appKey) || trim($appKey) === '') {
+            throw new \RuntimeException('OAuth state signing requires a non-empty app.key configuration value.');
+        }
+
+        if (str_starts_with($appKey, 'base64:')) {
+            $decoded = base64_decode(substr($appKey, 7), true);
+
+            if ($decoded === false || $decoded === '') {
+                throw new \RuntimeException('OAuth state signing requires a valid base64-encoded app.key configuration value.');
+            }
+
+            return $decoded;
+        }
+
+        return $appKey;
+    }
+
+    private function base64UrlEncode(string $input): string
+    {
+        return rtrim(strtr(base64_encode($input), '+/', '-_'), '=');
     }
 
     public function exchangeCode(string $code, OAuthProviderConfig $config): bool

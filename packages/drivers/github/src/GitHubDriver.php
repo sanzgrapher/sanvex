@@ -62,6 +62,7 @@ class GitHubDriver extends BaseDriver
         return new GitHubKeyBuilder(
             driver: $this->id,
             keyManager: $this->keyManager,
+            owner: $this->owner(),
         );
     }
 }

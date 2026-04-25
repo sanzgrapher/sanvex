@@ -6,6 +6,11 @@
     "require": {
         "php": "^8.2"
     },
+    "require-dev": {
+        "orchestra/testbench": "^10.0",
+        "phpunit/phpunit": "^11.0",
+        "pestphp/pest": "^3.0"
+    },
     "repositories": [
         {
             "type": "path",
@@ -26,6 +31,16 @@
             "Sanvex\\Drivers\\Linear\\": "packages/drivers/linear/src/",
             "Sanvex\\Drivers\\Notion\\": "packages/drivers/notion/src/",
             "Sanvex\\Drivers\\Slack\\": "packages/drivers/slack/src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Sanvex\\Core\\Tests\\": "packages/core/tests/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
         }
     }
 }

@@ -44,6 +44,7 @@ class GmailDriver extends BaseDriver
         return new GmailKeyBuilder(
             driver: $this->id,
             keyManager: $this->keyManager,
+            owner: $this->owner(),
         );
     }
 }

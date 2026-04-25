@@ -5,6 +5,7 @@ namespace Sanvex\Core\Webhooks;
 use Illuminate\Support\Facades\DB;
 use Sanvex\Core\BaseDriver;
 use Sanvex\Core\DTOs\WebhookResult;
+use Sanvex\Core\Tenancy\Owner;
 
 class WebhookProcessor
 {
@@ -48,8 +49,12 @@ class WebhookProcessor
 
     private function logEvent(string $driver, array $payload, WebhookResult $result): void
     {
+        $owner = $result->owner ?? Owner::global();
+
         try {
             DB::table('sv_events')->insert([
+                'owner_type' => $owner->type(),
+                'owner_id' => $owner->id(),
                 'driver' => $driver,
                 'event_type' => $result->eventType ?? 'unknown',
                 'payload' => json_encode($payload),

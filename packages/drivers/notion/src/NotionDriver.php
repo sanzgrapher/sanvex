@@ -78,6 +78,7 @@ class NotionDriver extends BaseDriver
         return new NotionKeyBuilder(
             driver: $this->id,
             keyManager: $this->keyManager,
+            owner: $this->owner(),
         );
     }
 }

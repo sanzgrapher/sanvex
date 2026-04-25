@@ -3,6 +3,7 @@
 namespace Sanvex\Core\Auth;
 
 use Sanvex\Core\Encryption\KeyManager;
+use Sanvex\Core\Tenancy\Owner;
 
 class KeyBuilder
 {
@@ -11,6 +12,7 @@ class KeyBuilder
     public function __construct(
         protected readonly string $driver,
         protected readonly ?KeyManager $keyManager = null,
+        protected readonly ?Owner $owner = null,
     ) {}
 
     public function set(string $key, string $value): void
@@ -18,7 +20,7 @@ class KeyBuilder
         $this->inMemory[$key] = $value;
 
         if ($this->keyManager) {
-            $this->keyManager->storeCredential($this->driver, $key, $value);
+            $this->keyManager->storeCredential($this->driver, $key, $value, $this->owner ?? Owner::global());
         }
     }
 
@@ -29,7 +31,7 @@ class KeyBuilder
         }
 
         if ($this->keyManager) {
-            $value = $this->keyManager->getCredential($this->driver, $key);
+            $value = $this->keyManager->getCredential($this->driver, $key, $this->owner ?? Owner::global());
             if ($value !== null) {
                 $this->inMemory[$key] = $value;
             }

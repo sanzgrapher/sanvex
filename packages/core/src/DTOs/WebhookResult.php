@@ -2,6 +2,8 @@
 
 namespace Sanvex\Core\DTOs;
 
+use Sanvex\Core\Tenancy\Owner;
+
 class WebhookResult
 {
     public function __construct(
@@ -11,6 +13,7 @@ class WebhookResult
         public readonly ?string $driver = null,
         public readonly ?string $eventType = null,
         public readonly ?string $error = null,
+        public readonly ?Owner $owner = null,
     ) {}
 
     public static function ok(array $response = [], ?string $driver = null, ?string $eventType = null): self
@@ -31,6 +34,19 @@ class WebhookResult
             error: $error,
             status: $status,
             driver: $driver,
+        );
+    }
+
+    public function withOwner(mixed $owner): self
+    {
+        return new self(
+            success: $this->success,
+            response: $this->response,
+            status: $this->status,
+            driver: $this->driver,
+            eventType: $this->eventType,
+            error: $this->error,
+            owner: Owner::resolve($owner),
         );
     }
 }
