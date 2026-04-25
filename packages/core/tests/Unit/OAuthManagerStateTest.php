@@ -60,4 +60,16 @@ class OAuthManagerStateTest extends CoreTestCase
         $this->assertNotNull($resolved);
         $this->assertTrue($resolved->isGlobal());
     }
+
+    public function test_build_state_throws_when_app_key_missing(): void
+    {
+        config()->set('app.key', null);
+
+        $manager = new OAuthManager('github');
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('OAuth state signing requires a non-empty app.key configuration value.');
+
+        $manager->buildState();
+    }
 }
